@@ -21,6 +21,9 @@ local bilingual TTS, offline speech input, and live-info crawlers
    copyright notice and comply with the license.
 3. API keys, local models and TTS services must be configured by you. Never
    commit a `config.env` containing real keys or personal paths.
+4. No prebuilt environment, packaged exe or portable bundle is provided. Users
+   deploy the Python environment, dependencies and services (GPT-SoVITS / Vosk)
+   themselves.
 
 ---
 
