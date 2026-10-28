@@ -1,0 +1,11 @@
+PyQt6>=6.5.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+akshare>=1.10.0
+torch>=2.0.0
+transformers>=4.36.0
+sentencepiece>=0.2.0
+vosk>=0.3.45
+pyaudio>=0.2.14
+playsound3>=3.3.2
+opencv-python-headless>=4.10.0.84,<5

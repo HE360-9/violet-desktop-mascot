@@ -1,0 +1,55 @@
+
+config.env
+*.env
+.env
+.env.*
+!.env.example
+.venv/
+# Local runtime data and private media
+/logs/
+/cache/
+/data/
+/tts_output/
+/ref/*
+!/ref/.gitkeep
+/vosk-model/*
+!/vosk-model/.gitkeep
+/static/prep_png/*.png
+*.wav
+*.mp3
+*.flac
+*.ogg
+output_audio/
+
+# Generated builds and packaged binaries
+/build/
+/dist/
+/dist_portable/
+/Violet.exe
+*.exe
+
+# Python artifacts and model weights
+__pycache__/
+*.py[cod]
+*.pyd
+*.bin
+*.safetensors
+*.pt
+*.pth
+models/
+pretrained_models/
+*.log
+*.bak*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
+
+
+api_v2.bat
