@@ -2,6 +2,9 @@
 
 [English](README.en.md) | 简体中文
 
+> 项目主页：[he360-9.github.io/violet-desktop-mascot](https://he360-9.github.io/violet-desktop-mascot/) ·
+> 更新日志：[CHANGELOG.md](CHANGELOG.md) · 打包说明：[docs/BUILD.md](docs/BUILD.md)
+
 基于 PyQt6 开发的《紫罗兰永恒花园》主题桌面虚拟桌宠，实现 AI 对话、本地中日双语 TTS、离线语音输入、天气/热搜/汇率金价爬虫等完整功能。
 
 ---

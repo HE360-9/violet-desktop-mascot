@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Violet · 薇尔莉特 AI 桌面人偶</title>
+<meta name="description" content="基于 PyQt6 的 AI 桌面人偶：LLM 对话、本地中日双语 TTS、离线语音输入、资讯爬虫与仿生记忆。MIT License。">
+<style>
+  :root{
+    --violet:#7b5ea7;
+    --violet-deep:#5b4382;
+    --violet-soft:#efe9f7;
+    --ink:#2c2440;
+    --muted:#6f6785;
+    --card:#ffffff;
+    --bg:#faf8fd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:"Segoe UI","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);line-height:1.7;
+  }
+  a{color:var(--violet-deep);text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* ---------- nav ---------- */
+  nav{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 6vw;
+    background:rgba(250,248,253,.86);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid #e7e0f2;
+  }
+  nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.5px}
+  nav .brand .dot{
+    width:12px;height:12px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%,#c9b3ee,var(--violet));
+    box-shadow:0 0 12px rgba(123,94,167,.6);
+  }
+  nav ul{display:flex;gap:22px;list-style:none;font-size:.94rem}
+  @media(max-width:640px){nav ul{display:none}}
+
+  /* ---------- hero ---------- */
+  header{
+    position:relative;overflow:hidden;
+    padding:74px 6vw 88px;
+    background:
+      radial-gradient(900px 420px at 12% -10%,#e9ddf9 0%,transparent 60%),
+      radial-gradient(700px 380px at 95% 0%,#dfe7fa 0%,transparent 55%),
+      linear-gradient(180deg,#fbf9fe 0%,var(--bg) 100%);
+  }
+  .hero{
+    max-width:1120px;margin:0 auto;
+    display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;
+  }
+  @media(max-width:880px){.hero{grid-template-columns:1fr;gap:36px}}
+  .hero h1{
+    font-size:clamp(2rem,4.4vw,3.1rem);line-height:1.25;letter-spacing:.5px;
+    background:linear-gradient(120deg,var(--violet-deep),#8e6fc0 60%,#6a86c9);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+  }
+  .hero .sub{color:var(--muted);font-size:1.05rem;margin-top:8px;letter-spacing:.4px}
+  .hero p.lead{margin-top:20px;font-size:1.06rem;color:#4a4162;max-width:34em}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+  .badge{
+    font-size:.78rem;letter-spacing:.3px;padding:5px 11px;border-radius:999px;
+    background:var(--violet-soft);color:var(--violet-deep);border:1px solid #ddd0f0;
+  }
+  .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 22px;border-radius:10px;font-weight:600;font-size:.95rem;
+    transition:transform .15s ease,box-shadow .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);text-decoration:none}
+  .btn-primary{background:linear-gradient(135deg,var(--violet),#9a7cc7);color:#fff;box-shadow:0 8px 22px rgba(123,94,167,.32)}
+  .btn-primary:hover{box-shadow:0 12px 28px rgba(123,94,167,.42)}
+  .btn-ghost{background:#fff;color:var(--violet-deep);border:1px solid #ddd0f0}
+
+  .shot{
+    position:relative;border-radius:18px;overflow:hidden;
+    border:1px solid #e2d8f0;background:#fff;
+    box-shadow:0 26px 60px rgba(91,67,130,.20);
+    transform:rotate(1.2deg);
+  }
+  .shot img{display:block;width:100%;height:auto}
+  .glow{
+    position:absolute;inset:-40px;z-index:-1;border-radius:50%;
+    background:radial-gradient(circle,rgba(154,124,199,.28),transparent 62%);
+  }
+
+  /* ---------- sections ---------- */
+  section{padding:64px 6vw}
+  .wrap{max-width:1120px;margin:0 auto}
+  h2{font-size:1.55rem;letter-spacing:.4px;margin-bottom:8px}
+  h2 .en{font-size:.9rem;color:var(--muted);font-weight:400;margin-left:10px;letter-spacing:.6px}
+  .section-sub{color:var(--muted);margin-bottom:30px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:600px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:var(--card);border:1px solid #ebe4f5;border-radius:14px;
+    padding:22px 20px;transition:transform .18s ease,box-shadow .18s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(91,67,130,.10)}
+  .card .ico{font-size:1.4rem}
+  .card h3{font-size:1.02rem;margin:10px 0 6px}
+  .card p{font-size:.9rem;color:var(--muted)}
+
+  /* ---------- quick start ---------- */
+  .start{
+    background:linear-gradient(135deg,#f3eefb,#eef2fb);
+    border:1px solid #e2d8f0;border-radius:18px;padding:34px;
+  }
+  .start-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:start}
+  @media(max-width:780px){.start-grid{grid-template-columns:1fr}}
+  pre{
+    background:#241d33;color:#e9e2f7;border-radius:12px;padding:18px 20px;
+    overflow:auto;font-size:.86rem;line-height:1.65;
+    font-family:"Cascadia Code",Consolas,monospace;
+  }
+  pre .c{color:#9a8fb8}
+  .steps{list-style:none;counter-reset:s}
+  .steps li{counter-increment:s;position:relative;padding-left:40px;margin-bottom:16px;font-size:.94rem}
+  .steps li::before{
+    content:counter(s);position:absolute;left:0;top:1px;
+    width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;font-size:.8rem;font-weight:700;
+    background:var(--violet);color:#fff;
+  }
+
+  /* ---------- footer ---------- */
+  footer{
+    border-top:1px solid #e7e0f2;padding:34px 6vw;color:var(--muted);
+    font-size:.86rem;text-align:center;
+  }
+  footer .links{margin-top:8px;display:flex;gap:18px;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand"><span class="dot"></span> Violet</div>
+  <ul>
+    <li><a href="#features">功能</a></li>
+    <li><a href="#start">快速开始</a></li>
+    <li><a href="https://github.com/HE360-9/violet-desktop-mascot">GitHub</a></li>
+    <li><a href="https://github.com/HE360-9/violet-desktop-mascot/releases">下载</a></li>
+  </ul>
+</nav>
+
+<header>
+  <div class="hero">
+    <div>
+      <h1>薇尔莉特 · AI 桌面人偶</h1>
+      <div class="sub">Violet Evergarden Desktop Mascot</div>
+      <p class="lead">
+        基于 PyQt6 的桌面虚拟桌宠：大模型对话、本地中日双语语音合成、
+        离线语音输入、摄像头视觉与实时资讯，全部围绕「她」展开。
+      </p>
+      <div class="badges">
+        <span class="badge">MIT License</span>
+        <span class="badge">Python 3.10+</span>
+        <span class="badge">PyQt6</span>
+        <span class="badge">Windows</span>
+        <span class="badge">本地 TTS · 无云端语音费</span>
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/HE360-9/violet-desktop-mascot">查看源码 →</a>
+        <a class="btn btn-ghost" href="https://github.com/HE360-9/violet-desktop-mascot/releases">下载 Release</a>
+        <a class="btn btn-ghost" href="https://github.com/HE360-9/violet-desktop-mascot/blob/main/README.en.md">English</a>
+      </div>
+    </div>
+    <div>
+      <div class="shot">
+        <span class="glow"></span>
+        <img src="assets/chat.png" alt="Violet 聊天界面预览">
+      </div>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <h2>核心功能 <span class="en">Features</span></h2>
+    <div class="section-sub">温柔、克制、会记得你说过的话。</div>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">💬</div>
+        <h3>AI 人设对话</h3>
+        <p>严格遵循薇尔莉特温柔内敛的人设，短句输出，可调节回复长度；遇到天气、热点、汇率问题自动调取实时数据。</p>
+      </div>
+      <div class="card">
+        <div class="ico">🎙️</div>
+        <h3>本地双语 TTS</h3>
+        <p>/zh 中文、/ja 日语切换朗读，长文本自动分句，避开接口超时；基于 GPT-SoVITS，无云端语音费用。</p>
+      </div>
+      <div class="card">
+        <div class="ico">⌨️</div>
+        <h3>离线语音输入</h3>
+        <p>按住空格说话、松开自动识别、ESC 取消，基于 Vosk 本地模型，全程不依赖联网语音接口。</p>
+      </div>
+      <div class="card">
+        <div class="ico">📷</div>
+        <h3>摄像头视觉</h3>
+        <p>默认关闭；人脸与嘴部动作启发式检测，画面只在本机处理，不保存、不上传。</p>
+      </div>
+      <div class="card">
+        <div class="ico">🌧️</div>
+        <h3>天气感知人设</h3>
+        <p>每 18 分钟后台查询天气，下雨自动切换病弱立绘，对话状态同步更新。</p>
+      </div>
+      <div class="card">
+        <div class="ico">🧠</div>
+        <h3>仿生记忆</h3>
+        <p>短期印象会衰减，长期记忆只保存你明确留下的情感与事实；本地 JSON 存储，随对话按需召回。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="start">
+  <div class="wrap">
+    <h2>快速开始 <span class="en">Quick Start</span></h2>
+    <div class="section-sub">需要自行准备立绘、Vosk 模型与 GPT-SoVITS，详见仓库 README。</div>
+    <div class="start">
+      <div class="start-grid">
+        <div>
+          <ol class="steps">
+            <li>克隆仓库，创建 Python 3.11 / 3.12 虚拟环境</li>
+            <li>安装 <code>requirements.txt</code> 依赖</li>
+            <li>复制 <code>config.env.example</code> 为 <code>config.env</code>，填入自己的 API Key</li>
+            <li>把立绘放进 <code>static/prep_png/</code>，Vosk 模型放进 <code>vosk-model/</code></li>
+            <li>运行 <code>python main.py</code>，或双击 <code>Violet.exe</code></li>
+          </ol>
+        </div>
+        <pre><span class="c"># 1. 获取代码</span>
+git clone https://github.com/HE360-9/violet-desktop-mascot.git
+cd violet-desktop-mascot
+
+<span class="c"># 2. 创建环境</span>
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+
+<span class="c"># 3. 安装依赖</span>
+pip install -r requirements.txt
+
+<span class="c"># 4. 配置并启动</span>
+Copy-Item config.env.example config.env
+python main.py</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div>基于 <a href="https://github.com/moreandice">moreandice</a> 的 Violet 桌面人偶项目学习复刻 · MIT License</div>
+  <div class="links">
+    <a href="https://github.com/HE360-9/violet-desktop-mascot">GitHub</a>
+    <a href="https://github.com/HE360-9/violet-desktop-mascot/releases">Releases</a>
+    <a href="https://github.com/HE360-9/violet-desktop-mascot/blob/main/CHANGELOG.md">Changelog</a>
+    <a href="https://github.com/HE360-9/violet-desktop-mascot/issues">Issues</a>
+  </div>
+</footer>
+
+</body>
+</html>
