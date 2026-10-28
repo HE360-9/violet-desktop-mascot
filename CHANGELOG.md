@@ -3,6 +3,14 @@
 本项目所有值得记录的改动。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- README 配置指南重写为分步教程：必填/可选分离，补充配置项表格与常见错误对照。
+- 英文 README 同步补充配置与排错章节。
+- `config.env.example` 补齐 `LLM_THINKING`、`TTS_BAT_PATH`、`TTS_SPEED_FACTOR`、`TTS_TARGET_LUFS`、`TTS_TRUE_PEAK` 等配置项。
+
 ## [v0.1.0] - 2026-10-28
 
 首个公开版本 / Initial public release。

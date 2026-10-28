@@ -105,47 +105,117 @@ pipwin install pyaudio
 
 ---
 
-## 三、项目配置步骤
+## 三、配置指南
 
-1. 复制仓库内 `config.env.example`，重命名为 `config.env`（PowerShell：`Copy-Item config.env.example config.env`）；
-2. 至少填写火山方舟 `ARK_API_KEY`。如需语音合成，再填写 GPT-SoVITS 路径、参考音频和超时参数；不使用语音合成时将 `ENABLE_TTS=false`；
-3. 根目录 `prompt.txt` 为人设文件，可按需微调角色语气，不建议大幅修改规则。
+> 最小可用 = 第 1～3 步（只聊天）。想要语音，再加第 4～5 步。
 
-### config.env 配置项说明
+### 第 1 步：生成配置文件
 
-> 不想手改文件也可以：运行后在聊天窗点 ☰（或托盘图标）→「设置…」，这边建议手写，我不是很信任这个测试连接！！！
-> 直接填 API Key / 接口地址 / 模型 ID / 温度 / 回复长度，带「测试连接」，我虽然搞了这个功能，但实际测试发现有点问题
-> 保存即写回本文件并立即生效。
+```powershell
+Copy-Item config.env.example config.env
+```
+
+`config.env` 已被 `.gitignore` 忽略，里面的 Key 不会被提交。
+
+### 第 2 步：填大模型（必做）
+
+1. 打开 [火山方舟控制台](https://console.volcengine.com/ark) →「API Key 管理」→ 创建并复制 Key；
+2. 在「在线推理」里开通豆包系列模型、创建接入点，复制**接入点 ID**（形如 `ep-2024xxxx-xxxxx`）；
+3. 编辑 `config.env`：
 
 ```env
-# 大模型 API 配置
-ARK_API_KEY = "你的火山方舟 API Key"//不做宣传，想要什么模型自己配置即可
+ARK_API_KEY = "你的 API Key"
 API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
-LLM_MODEL_NAME = "doubao-seed-2-0-lite-260428"
+LLM_MODEL_NAME = "ep-2024xxxx-xxxxx"
 TEMPERATURE = 0.7
-# 思考 + 正文的合计上限；150 会被思考吃光，回答只剩半句
 MAX_TOKENS = 600
-# 关掉模型思考过程（off/on/auto），角色闲聊建议 off
 LLM_THINKING = off
+```
 
-# GPT-SoVITS TTS 配置
+| 变量 | 必填 | 说明 |
+|---|---|---|
+| `ARK_API_KEY` | ✅ | 火山方舟 API Key；一旦泄露请立即作废重建 |
+| `API_URL` | ✅ | 兼容 OpenAI 格式的 `chat/completions` 地址 |
+| `LLM_MODEL_NAME` | ✅ | 接入点 ID，或直接填模型 ID（如 `doubao-seed-2-0-lite-260428`） |
+| `TEMPERATURE` | | 0～1，越低越稳定；角色闲聊 0.7 左右 |
+| `MAX_TOKENS` | | 思考 + 正文合计上限，太小会把回答截断 |
+| `LLM_THINKING` | | `off` / `on` / `auto`，闲聊建议 `off` |
+
+> 换别的服务商？只要接口兼容 OpenAI 的 `chat/completions`，改 `API_URL` / `LLM_MODEL_NAME` / `ARK_API_KEY` 三项即可。
+
+### 第 3 步：先跑起来验证
+
+```powershell
+python main.py
+```
+
+发一句「你好」，能正常回复就说明大模型通了。报错对照文末「常见错误」。
+
+### 第 4 步：语音合成 TTS（可选）
+
+不想用语音：设 `ENABLE_TTS = false`，直接跳过本节。
+
+要用语音：
+
+1. 下载 GPT-SoVITS v2，确认能正常启动 `api_v2.bat`；
+2. 准备一段 3～10 秒、干净无伴奏的参考音频（`.wav`）；
+3. `TTS_PROMPT_TEXT` 必须填**这段音频里实际说的话**，语言由 `TTS_PROMPT_LANG` 指定（中文 `zh`、日语 `ja`）；
+4. 填好后启动程序，它会自动拉起 9880 服务。
+
+```env
 ENABLE_TTS = true
 TTS_API_URL = http://127.0.0.1:9880
-TTS_REF_AUDIO_PATH = "你的参考音频完整路径.wav"
+TTS_REF_AUDIO_PATH = "D:\voices\violet_ref.wav"
 TTS_PROMPT_TEXT = 自動手記人形サービスバイオレットエヴァーガーデンです
 TTS_PROMPT_LANG = ja
-TTS_OUTPUT_DIR = ./tts_output
+TTS_BAT_PATH = D:\GPT-SoVITS\api_v2.bat
 TTS_TIMEOUT = 180
-
-# 语速：1.0 = 模型原始语速，>1 更快、<1 更慢（范围 0.5 ~ 2.0）
 TTS_SPEED_FACTOR = 1.15
-# 逐句响度统一的目标响度（LUFS）与峰值上限（dBTP）
 TTS_TARGET_LUFS = -20
 TTS_TRUE_PEAK = -1.5
-
-# GPT-SoVITS 启动 bat 完整路径
-TTS_BAT_PATH = D:\你的路径\api_v2.bat
 ```
+
+| 变量 | 说明 |
+|---|---|
+| `TTS_BAT_PATH` | `api_v2.bat` 的完整路径，程序用它启动服务 |
+| `TTS_REF_AUDIO_PATH` | 参考音色音频，3～10 秒最佳 |
+| `TTS_PROMPT_TEXT` | 参考音频的原文，**必须逐字一致**，否则音色会乱 |
+| `TTS_PROMPT_LANG` | 参考音频语言：`zh` / `ja` / `en` |
+| `TTS_SPEED_FACTOR` | 语速，1.0 原速，范围 0.5～2.0 |
+| `TTS_TARGET_LUFS` / `TTS_TRUE_PEAK` | 逐句响度归一化目标与峰值上限 |
+| `TTS_TIMEOUT` | 单句合成超时（秒），长句或慢机器可调大 |
+
+### 第 5 步：语音识别 ASR（可选）
+
+把 `vosk-model-small-cn-0.22` 整个文件夹放成：
+
+```
+vosk-model\vosk-model-small-cn-0.22\
+```
+
+缺模型时语音输入只会静默失效；装好后按住空格即可说话，松开自动识别。
+
+### 第 6 步：人设（可选）
+
+`prompt.txt` 是角色人格，可以微调语气，但不建议大改规则，否则容易答非所问。
+
+### 常见错误
+
+| 现象 | 多半是 | 处理 |
+|---|---|---|
+| `401 Unauthorized` | Key 错误 / 过期 | 重新复制 `ARK_API_KEY`，注意别把引号、空格带进去 |
+| `404 model not found` | 模型或接入点 ID 不对 | 控制台确认接入点已开通，填 `ep-` 开头的 ID |
+| 回复只有半句 | `MAX_TOKENS` 太小 | 调到 600～1000，或把 `LLM_THINKING` 设为 `off` |
+| 没声音，日志报 9880 连接失败 | GPT-SoVITS 没起来 | 手动运行 `api_v2.bat`，浏览器打开 `http://127.0.0.1:9880/docs` 确认 |
+| 语音是杂音 / 断句奇怪 | 参考音频与 `TTS_PROMPT_TEXT` 不一致 | 两者必须逐字对应；音频 3～10 秒、干净无伴奏 |
+| 按住空格没反应 | Vosk 模型缺失或路径不对 | 检查 `vosk-model\vosk-model-small-cn-0.22` |
+| 改了配置不生效 | 程序还在运行 | 关掉重开；设置页保存会立即生效 |
+
+### 也可以不改文件
+
+运行后点聊天窗 ☰（或托盘图标）→「设置…」，直接填 Key / 接口地址 / 模型 / 温度 / 长度，保存即写回 `config.env`。
+
+> 作者提示：内置的「测试连接」按钮不太可靠，建议以实际发消息能否回复为准。
 
 ---
 

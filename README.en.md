@@ -50,10 +50,93 @@ pipwin install pyaudio
 
 ## Configuration
 
-1. Copy `config.env.example` to `config.env`.
-2. Fill in at least `ARK_API_KEY` (Volcengine Ark). For TTS, also set the
-   GPT-SoVITS path, reference audio and timeout; otherwise keep `ENABLE_TTS=false`.
-3. `prompt.txt` holds the character persona — tweak it lightly if you like.
+Minimum viable setup is steps 1–3 (chat only). Add 4–5 for voice.
+
+### 1. Create the config file
+
+```powershell
+Copy-Item config.env.example config.env
+```
+
+`config.env` is git-ignored, so your key never gets committed.
+
+### 2. LLM (required)
+
+1. Open the [Volcengine Ark console](https://console.volcengine.com/ark) →
+   **API Key management** → create and copy a key.
+2. Under **Online inference**, activate a Doubao model and create an endpoint;
+   copy the **endpoint ID** (`ep-2024xxxx-xxxxx`).
+3. Edit `config.env`:
+
+```env
+ARK_API_KEY = "your API key"
+API_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions"
+LLM_MODEL_NAME = "ep-2024xxxx-xxxxx"
+TEMPERATURE = 0.7
+MAX_TOKENS = 600
+LLM_THINKING = off
+```
+
+| Variable | Required | Notes |
+|---|---|---|
+| `ARK_API_KEY` | ✅ | Ark API key; rotate it if leaked |
+| `API_URL` | ✅ | Any OpenAI-compatible `chat/completions` endpoint |
+| `LLM_MODEL_NAME` | ✅ | Endpoint ID or model ID |
+| `TEMPERATURE` | | 0–1; lower = steadier, ~0.7 for role-play |
+| `MAX_TOKENS` | | Thinking + reply budget; too small truncates answers |
+| `LLM_THINKING` | | `off` / `on` / `auto`; `off` recommended |
+
+### 3. Verify
+
+```powershell
+python main.py
+```
+
+Send "hello"; a reply means the LLM works.
+
+### 4. TTS (optional)
+
+Set `ENABLE_TTS = false` to skip. Otherwise:
+
+1. Install GPT-SoVITS v2 and make sure `api_v2.bat` starts.
+2. Prepare a clean 3–10 s reference `.wav`.
+3. `TTS_PROMPT_TEXT` must be the **exact transcript** of that clip;
+   set `TTS_PROMPT_LANG` (`zh` / `ja` / `en`).
+4. Start the app — it launches the 9880 service automatically.
+
+```env
+ENABLE_TTS = true
+TTS_API_URL = http://127.0.0.1:9880
+TTS_REF_AUDIO_PATH = "D:\voices\violet_ref.wav"
+TTS_PROMPT_TEXT = 自動手記人形サービスバイオレットエヴァーガーデンです
+TTS_PROMPT_LANG = ja
+TTS_BAT_PATH = D:\GPT-SoVITS\api_v2.bat
+TTS_TIMEOUT = 180
+TTS_SPEED_FACTOR = 1.15
+```
+
+### 5. ASR (optional)
+
+Place the Vosk model at `vosk-model\vosk-model-small-cn-0.22\`. Without it,
+voice input silently does nothing.
+
+### 6. Persona (optional)
+
+`prompt.txt` is the character persona — tweak lightly, don't rewrite the rules.
+
+### Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `401 Unauthorized` | bad/expired key | re-copy `ARK_API_KEY`, no quotes or trailing spaces |
+| `404 model not found` | wrong endpoint/model ID | use the `ep-` endpoint ID from the console |
+| Replies cut in half | `MAX_TOKENS` too small | raise to 600–1000, or `LLM_THINKING=off` |
+| No audio, 9880 connection errors | GPT-SoVITS not running | start `api_v2.bat`, check `http://127.0.0.1:9880/docs` |
+| Robotic/garbled voice | prompt text ≠ reference audio | make them match exactly; 3–10 s clean clip |
+| Space does nothing | Vosk model missing | check the `vosk-model\...` path |
+
+You can also configure everything in-app: ☰ → **Settings…**; saving writes back
+to `config.env`.
 
 ## Resources you must provide
 
